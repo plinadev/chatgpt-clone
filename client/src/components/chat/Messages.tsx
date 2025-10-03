@@ -1,6 +1,7 @@
 import { useSelector } from "react-redux";
 import Message from "./Message";
 import type { RootState } from "../../store";
+import { useEffect, useRef } from "react";
 
 function Messages() {
   const { selectedConversationId, conversations } = useSelector(
@@ -10,7 +11,12 @@ function Messages() {
   const conversation = conversations.find(
     (conversation) => conversation.id === selectedConversationId
   );
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
+  const scrollToBottom = () => {
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+  useEffect(scrollToBottom, [conversation?.messages]);
   return (
     <div className="chat_messages_container">
       {conversation?.messages.map((message, idx) => (
@@ -23,6 +29,7 @@ function Messages() {
           }
         />
       ))}
+      <div ref={scrollRef}></div>
     </div>
   );
 }

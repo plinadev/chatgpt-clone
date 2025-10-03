@@ -3,6 +3,7 @@ import http from "http";
 import cors from "cors";
 import registerSocketServer from "./socketServer";
 import "dotenv/config";
+import openai from "./openai.config";
 
 const app = express();
 

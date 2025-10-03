@@ -6,6 +6,7 @@ import type { RootState } from "../../store";
 import {
   addMessage,
   setSelectedConversationId,
+  type Conversation,
   type Message,
 } from "../dashboard/dashboardSlice";
 import { sendConversationMessage } from "../../socket/socketConnection";
@@ -15,6 +16,14 @@ function NewMessageInput() {
   const dispatch = useDispatch();
   const selectedConversationId = useSelector(
     (state: RootState) => state.dashboard.selectedConversationId
+  );
+
+  const conversations = useSelector(
+    (state: RootState) => state.dashboard.conversations
+  );
+
+  const selectedConversation = conversations.find(
+    (c: Conversation) => c.id === selectedConversationId
   );
 
   const handleSendMessage = (): void => {
@@ -31,7 +40,7 @@ function NewMessageInput() {
       selectedConversationId === "new" ? uuid() : selectedConversationId;
 
     if (!conversationId) return;
-    
+
     // append this message to local store
     dispatch(
       addMessage({
@@ -68,6 +77,12 @@ function NewMessageInput() {
           setContent(e.target.value)
         }
         onKeyDown={handleKeyPressed}
+        disabled={
+          selectedConversation &&
+          !selectedConversation.messages[
+            selectedConversation.messages.length - 1
+          ].aiMessage
+        }
       />
       <div className="new_message_icon_container" onClick={handleSendMessage}>
         <BsSend color="grey" />

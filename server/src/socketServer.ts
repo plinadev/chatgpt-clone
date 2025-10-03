@@ -1,6 +1,7 @@
 import { Server as HttpServer } from "http";
 import { Server, Socket } from "socket.io";
 import { v4 as uuid } from "uuid";
+import openai from "./openai.config";
 
 interface Message {
   id: string;
@@ -46,9 +47,12 @@ const registerSocketServer = (server: HttpServer): void => {
       conversationMessageHandler(socket, data);
     });
 
-    socket.on("conversations-delete", ({ sessionId }: { sessionId: string }) => {
-      conversationDeleteHandler(socket, sessionId);
-    });
+    socket.on(
+      "conversations-delete",
+      ({ sessionId }: { sessionId: string }) => {
+        conversationDeleteHandler(socket, sessionId);
+      }
+    );
   });
 };
 
@@ -71,19 +75,44 @@ const sessionHistoryHandler = (socket: Socket, data: SessionHistory): void => {
   }
 };
 
-const conversationMessageHandler = (
+const conversationMessageHandler = async (
   socket: Socket,
   data: ConversationMessageData
-): void => {
+) => {
   const { sessionId, message, conversationId } = data;
 
   if (!sessions[sessionId]) return;
 
   const conversation = sessions[sessionId].find((c) => c.id === conversationId);
 
+  const previousConversationMessages: {
+    role: "user" | "assistant";
+    content: string;
+  }[] = [];
+
+  if (conversation) {
+    previousConversationMessages.push(
+      ...conversation.messages.map((m: Message) => ({
+        role: (m.aiMessage ? "assistant" : "user") as "user" | "assistant",
+        content: m.content,
+      }))
+    );
+  }
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      ...previousConversationMessages,
+      { role: "user", content: message.content },
+    ],
+  });
+  const aiMessageContent =
+    response.choices[0].message.content ||
+    "Can't answer your question right now. Try again later...";
+
   const aiMessage: Message = {
     id: uuid(),
-    content: "Hello! How can I help you?",
+    content: aiMessageContent,
     aiMessage: true,
   };
 

@@ -40,7 +40,7 @@ function Message({ content, aiMessage, animate }: MessageProps) {
         {aiMessage ? <FcMindMap /> : <FcReading />}
       </div>
       <p className="message_text">
-        {animate ? <SlowText speed={60} text={content} /> : content}
+        {animate ? <SlowText speed={20} text={content} /> : content}
       </p>
     </div>
   );
