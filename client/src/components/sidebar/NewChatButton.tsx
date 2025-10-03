@@ -1,8 +1,14 @@
 import { AiOutlinePlus } from "react-icons/ai";
 
-function NewChatButton() {
+interface NewChatButtonProps {
+  handleSetSelectedChat: (state: string) => void;
+}
+function NewChatButton({ handleSetSelectedChat }: NewChatButtonProps) {
   return (
-    <div className="new_chat_button" onClick={() => {}}>
+    <div
+      className="new_chat_button"
+      onClick={() => handleSetSelectedChat("new")}
+    >
       <div className="new_chat_button_icon">
         <AiOutlinePlus />
       </div>
