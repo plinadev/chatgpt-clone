@@ -6,7 +6,7 @@ interface Message {
   id: string;
   content: string;
   aiMessage: boolean;
-  animate: boolean;
+  animate?: boolean;
 }
 
 interface Conversation {
@@ -16,6 +16,12 @@ interface Conversation {
 
 interface SessionHistory {
   sessionId: string;
+}
+
+interface ConversationMessageData {
+  sessionId: string;
+  message: Message;
+  conversationId: string;
 }
 
 // sessions object: keys are sessionId, values are arrays of Conversation
@@ -36,8 +42,12 @@ const registerSocketServer = (server: HttpServer): void => {
       sessionHistoryHandler(socket, data);
     });
 
-    socket.on("conversation-message", (data: Message) => {
+    socket.on("conversation-message", (data: ConversationMessageData) => {
       conversationMessageHandler(socket, data);
+    });
+
+    socket.on("conversations-delete", ({ sessionId }: { sessionId: string }) => {
+      conversationDeleteHandler(socket, sessionId);
     });
   });
 };
@@ -54,16 +64,50 @@ const sessionHistoryHandler = (socket: Socket, data: SessionHistory): void => {
   } else {
     const newSessionId = uuid();
     sessions[newSessionId] = [];
-    const sessionDetails = {
+    socket.emit("session-details", {
       sessionId: newSessionId,
-      conversations: [] as Conversation[],
-    };
-    socket.emit("session-details", sessionDetails);
+      conversations: [],
+    });
   }
 };
 
-const conversationMessageHandler = (socket: Socket, data: Message): void => {
-  console.log("message data: ", data);
+const conversationMessageHandler = (
+  socket: Socket,
+  data: ConversationMessageData
+): void => {
+  const { sessionId, message, conversationId } = data;
+
+  if (!sessions[sessionId]) return;
+
+  const conversation = sessions[sessionId].find((c) => c.id === conversationId);
+
+  const aiMessage: Message = {
+    id: uuid(),
+    content: "Hello! How can I help you?",
+    aiMessage: true,
+  };
+
+  if (!conversation) {
+    // create new conversation if it doesn't exist
+    sessions[sessionId].push({
+      id: conversationId,
+      messages: [message, aiMessage],
+    });
+    socket.emit("conversation-details", {
+      id: conversationId,
+      messages: [message, aiMessage],
+    });
+    return;
+  }
+
+  // append messages to existing conversation
+  conversation.messages.push(message, aiMessage);
+  socket.emit("conversation-details", conversation);
 };
 
+const conversationDeleteHandler = (socket: Socket, sessionId: string) => {
+  if (sessions[sessionId]) {
+    sessions[sessionId] = [];
+  }
+};
 export default registerSocketServer;

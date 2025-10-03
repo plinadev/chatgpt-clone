@@ -2,11 +2,19 @@ import { BsChatLeft } from "react-icons/bs";
 
 interface ListItemProps {
   title: string;
-  chatId: string;
+  conversationId: string;
+  handleSetSelectedChat: (id: string) => void;
 }
-function ListItem({ title, chatId }: ListItemProps) {
+function ListItem({
+  title,
+  conversationId,
+  handleSetSelectedChat,
+}: ListItemProps) {
   return (
-    <div className="list_item" onClick={() => {}}>
+    <div
+      className="list_item"
+      onClick={() => handleSetSelectedChat(conversationId)}
+    >
       <div className="list_item_icon">
         <BsChatLeft color="white" />
       </div>

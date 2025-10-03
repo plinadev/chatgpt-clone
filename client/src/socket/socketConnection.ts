@@ -1,6 +1,7 @@
 import { io, Socket } from "socket.io-client";
 import {
   setConversations,
+  setConversationHistory,
   type Conversation,
   type Message,
 } from "../components/dashboard/dashboardSlice";
@@ -30,6 +31,10 @@ export const connectToSocketServer = (): void => {
 
       store.dispatch(setConversations(conversations));
     });
+
+    socket?.on("conversation-details", (conversation: Conversation) => {
+      store.dispatch(setConversationHistory(conversation));
+    });
   });
 };
 
@@ -42,5 +47,15 @@ export const sendConversationMessage = ({
 }): void => {
   if (!socket) return;
 
-  socket.emit("conversation-message", { message, conversationId });
+  socket.emit("conversation-message", {
+    sessionId: localStorage.getItem("sessionId"),
+    message,
+    conversationId,
+  });
+};
+
+export const deleteConversations = () => {
+  socket?.emit("conversations-delete", {
+    sessionId: localStorage.getItem("sessionId"),
+  });
 };

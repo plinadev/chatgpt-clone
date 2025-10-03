@@ -48,8 +48,31 @@ const dashboardSlice = createSlice({
       state.conversations = action.payload;
       state.sessionEstablished = true;
     },
+    deleteConversations: (state) => {
+      state.conversations = [];
+      state.selectedConversationId = null;
+    },
+    setConversationHistory: (state, action) => {
+      const { id, messages } = action.payload;
+      const conversation = state.conversations.find(
+        (c: Conversation) => c.id === id
+      );
+      if (conversation) {
+        conversation.messages = messages;
+      } else {
+        state.conversations.push({
+          id,
+          messages,
+        });
+      }
+    },
   },
 });
-export const { setSelectedConversationId, addMessage, setConversations } =
-  dashboardSlice.actions;
+export const {
+  setSelectedConversationId,
+  addMessage,
+  setConversations,
+  setConversationHistory,
+  deleteConversations,
+} = dashboardSlice.actions;
 export default dashboardSlice.reducer;

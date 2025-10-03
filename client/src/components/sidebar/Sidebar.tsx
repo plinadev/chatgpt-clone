@@ -24,7 +24,8 @@ function Sidebar() {
         <ListItem
           key={conversation.id}
           title={conversation.messages[0].content}
-          chatId={conversation.id}
+          conversationId={conversation.id}
+          handleSetSelectedChat={handleSetSelectedChat}
         />
       ))}
       <DeleteConversationsButton />
